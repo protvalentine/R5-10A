@@ -145,25 +145,22 @@ Avec $unwind: "$studio", le tableau est « déplié » : le champ studio devient
 - PostgreSQL avec studio_id REFERENCES studios(id) aurait refusé de supprimer le studio tant que des jeux le référencent (erreur de clé étrangère), ou aurait appliqué une règle (cascade, set null).
 - Dans PixelHub, c'est nous, le code de l'application (le développeur), qui sommes responsables de l'intégrité des références. La base ne le fait pas.
 
+**Q17.**
 
-**Q17.** 
-
-Le prix actuel du jeu (1 200 pièces) vit dans le document du jeu, dans MongoDB (catalogue). 
-Le prix payé par Nova (900 pièces) doit vivre côté PostgreSQL, avec les joueurs et leurs pièces, dans l'achat lui-même (par exemple une table achats avec le prix payé et la date). 
-Dupliquer le prix est juste ici parce que ce n'est pas une copie qui doit rester synchronisée : c'est un fait historique. 
+Le prix actuel du jeu (1 200 pièces) vit dans le document du jeu, dans MongoDB (catalogue).
+Le prix payé par Nova (900 pièces) doit vivre côté PostgreSQL, avec les joueurs et leurs pièces, dans l'achat lui-même (par exemple une table achats avec le prix payé et la date).
+Dupliquer le prix est juste ici parce que ce n'est pas une copie qui doit rester synchronisée : c'est un fait historique.
 Le prix payé à l'achat doit rester à 900 même si le prix du jeu change ensuite.
-
 
 **Q18.**
 
 $slice: -2 dans le $push garde seulement les deux derniers éléments du tableau après l'ajout :
-quand on ajoute un 3e avis, le plus ancien est retiré de derniersAvis. 
-La collection avis référence le jeu par son _id et pas par son titre parce que le titre peut changer (renommage) et il faudrait alors modifier tous les avis, alors que l'_id ne change jamais.
+quand on ajoute un 3e avis, le plus ancien est retiré de derniersAvis.
+La collection avis référence le jeu par son \_id et pas par son titre parce que le titre peut changer (renommage) et il faudrait alors modifier tous les avis, alors que l'\_id ne change jamais.
 
 **Q19.**
 La base est dans un état incohérent :
-l'avis est dans la collection avis, mais derniersAvis dans le jeu n'est pas à jour (il manque le dernier avis). 
-C'est la collection avis qui fait foi (c'est la source de vérité), derniersAvis n'est qu'une copie. 
-Pour réparer, on recalcule derniersAvis à partir de avis (les deux avis les plus récents du jeu) et on réécrit le champ dans le jeu. 
+l'avis est dans la collection avis, mais derniersAvis dans le jeu n'est pas à jour (il manque le dernier avis).
+C'est la collection avis qui fait foi (c'est la source de vérité), derniersAvis n'est qu'une copie.
+Pour réparer, on recalcule derniersAvis à partir de avis (les deux avis les plus récents du jeu) et on réécrit le champ dans le jeu.
 Le vrai problème (deux écritures non atomiques) sera vu en séance 5.
-
