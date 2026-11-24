@@ -16,7 +16,7 @@ UNWIND [
   {pseudo:'Luna', niveau:9},  {pseudo:'Rex', niveau:14},
   {pseudo:'Mika', niveau:7},  {pseudo:'Sora', niveau:17}
 ] AS d
-MERGE (j:Joueur {pseudo: d.pseudo})
+CREATE (j:Joueur {pseudo: d.pseudo})
   ON CREATE SET j.niveau = d.niveau;
 
 // ---------- Jeux ----------
@@ -25,11 +25,11 @@ UNWIND [
   'Hades II', 'Mario Kart 8 Deluxe', "Baldur's Gate 3",
   'Rocket League', 'Terraria', 'Valorant', 'Vampire Survivors'
 ] AS titre
-MERGE (:Jeu {titre: titre});
+CREATE (:Jeu {titre: titre});
 
 // ---------- Guildes ----------
 UNWIND ['Les Pixels', 'Nuit Blanche'] AS nom
-MERGE (:Guilde {nom: nom});
+CREATE (:Guilde {nom: nom});
 
 // ---------- Amitiés (une seule direction, interrogée sans flèche) ----------
 UNWIND [
@@ -38,7 +38,7 @@ UNWIND [
   ['Luna','Rex'], ['Zed','Mika'], ['Rex','Sora'], ['Ombre','Mika']
 ] AS p
 MATCH (a:Joueur {pseudo: p[0]}), (b:Joueur {pseudo: p[1]})
-MERGE (a)-[:AMI_DE]->(b);
+CREATE (a)-[:AMI_DE]->(b);
 
 // ---------- Possessions ----------
 UNWIND [
@@ -54,7 +54,7 @@ UNWIND [
   ['Sora','Cities: Skylines II'], ['Sora','Terraria']
 ] AS p
 MATCH (j:Joueur {pseudo: p[0]}), (g:Jeu {titre: p[1]})
-MERGE (j)-[:POSSEDE {depuis: 2024}]->(g);
+CREATE (j)-[:POSSEDE {depuis: 2024}]->(g);
 
 // ---------- Appartenances ----------
 UNWIND [
@@ -62,4 +62,4 @@ UNWIND [
   ['Ombre','Nuit Blanche'], ['Vega','Nuit Blanche'], ['Zed','Nuit Blanche']
 ] AS p
 MATCH (j:Joueur {pseudo: p[0]}), (g:Guilde {nom: p[1]})
-MERGE (j)-[:MEMBRE_DE]->(g);
+CREATE (j)-[:MEMBRE_DE]->(g);

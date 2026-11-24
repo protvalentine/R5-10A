@@ -4,6 +4,7 @@ using PixelHub.Api.Models;
 using MongoDB.Driver;
 using PixelHub.Api.Repositories;
 using StackExchange.Redis;
+using Neo4j.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,15 @@ builder.Services.AddSingleton<IGameCatalog>(sp =>
     new CachedGameCatalog(
         sp.GetRequiredService<MongoGameCatalog>(),
         sp.GetRequiredService<IConnectionMultiplexer>()));
+
+builder.Services.AddSingleton<IDriver>(_ =>
+    GraphDatabase.Driver(
+        builder.Configuration["Neo4j:Uri"],
+        AuthTokens.Basic(
+            builder.Configuration["Neo4j:User"],
+            builder.Configuration["Neo4j:Password"])));
+
+builder.Services.AddSingleton<ISocialGraph, Neo4jSocialGraph>();
 
 var app = builder.Build();
 
@@ -79,5 +89,15 @@ app.MapGet("/games/timed", async (IGameCatalog catalog) =>
     chrono.Stop();
     return new { nombre = jeux.Count, millisecondes = chrono.Elapsed.TotalMilliseconds };
 });
+
+app.MapGet("/social/{pseudo}/friends",
+    async (string pseudo, ISocialGraph g) => await g.GetFriendsAsync(pseudo));
+
+app.MapGet("/social/{pseudo}/recommendations",
+    async (string pseudo, int? depth, ISocialGraph g) =>
+        await g.RecommendGamesAsync(pseudo, depth ?? 2));
+
+app.MapGet("/social/{pseudo}/friend-suggestions",
+    async (string pseudo, ISocialGraph g) => await g.SuggestFriendsAsync(pseudo));
 
 app.Run();
